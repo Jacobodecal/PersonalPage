@@ -1,32 +1,34 @@
 'use client';
 
+import Link from 'next/link';
+
 export default function Navigation() {
   return (
     <nav className="border-b border-border">
       <div className="max-w-5xl mx-auto px-6 py-6">
         <div className="flex justify-between items-center">
-          <a
+          <Link
             href="/"
             className="text-2xl font-bold text-foreground hover:text-primary transition-colors"
           >
             Jacobo De Cal
-          </a>
+          </Link>
           <ul className="flex gap-8 text-lg">
             <li>
-              <a
+              <Link
                 href="/#writing"
                 className="text-foreground hover:text-primary transition-colors"
               >
                 Essays
-              </a>
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 href="#contact"
                 className="text-foreground hover:text-primary transition-colors"
               >
                 Contact
-              </a>
+              </Link>
             </li>
           </ul>
         </div>

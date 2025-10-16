@@ -32,7 +32,7 @@ export default function BlogPost({ params }: PageProps) {
 
   try {
     post = getPostBySlug(params.slug);
-  } catch (error) {
+  } catch {
     notFound();
   }
 

@@ -31,7 +31,7 @@ export default function Hero() {
         setStatus('error');
         setMessage(data.error || 'Something went wrong. Please try again.');
       }
-    } catch (error) {
+    } catch {
       setStatus('error');
       setMessage('Something went wrong. Please try again.');
     }
@@ -41,7 +41,7 @@ export default function Hero() {
     <section id="about" className="pt-16 pb-16">
       <div className="max-w-5xl mx-auto px-6">
         <p className="text-lg text-text-secondary leading-relaxed mb-8 max-w-2xl">
-          I'm an investor at <a href="https://indicator.capital" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">Indicator Capital</a>, a deep tech venture capital firm based in Silicon Valley and São Paulo. I write about the topics that excite me most — technology, business, sports, and startups. If you're interested in following my writing, you can subscribe below:
+          I&apos;m an investor at <a href="https://indicator.capital" target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground transition-colors">Indicator Capital</a>, a deep tech venture capital firm based in Silicon Valley and São Paulo. I write about the topics that excite me most — technology, business, sports, and startups. If you&apos;re interested in following my writing, you can subscribe below:
         </p>
 
         <form onSubmit={handleSubmit} className="flex gap-3 mb-16 max-w-2xl">
