@@ -47,11 +47,11 @@ export default function BlogPost({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation back home */}
-      <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-md border-b border-border z-50">
-        <div className="max-w-3xl mx-auto px-6 py-4">
+      <nav className="border-b border-border">
+        <div className="max-w-5xl mx-auto px-6 py-6">
           <Link
             href="/"
-            className="text-xl font-bold text-foreground hover:text-primary transition-colors"
+            className="text-2xl font-bold text-foreground hover:text-primary transition-colors"
           >
             ← Jacobo De Cal
           </Link>
@@ -59,8 +59,8 @@ export default function BlogPost({ params }: PageProps) {
       </nav>
 
       {/* Blog post content */}
-      <article className="pt-32 pb-20">
-        <div className="max-w-3xl mx-auto px-6">
+      <article className="pt-16 pb-20">
+        <div className="max-w-5xl mx-auto px-6">
           {/* Post header */}
           <header className="mb-12">
             <time className="text-sm text-text-light mb-4 block">

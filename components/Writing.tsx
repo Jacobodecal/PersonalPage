@@ -14,10 +14,10 @@ export default function Writing() {
   };
 
   return (
-    <section id="writing" className="py-16">
-      <div className="max-w-3xl mx-auto px-6">
+    <section id="writing" className="py-16 border-t border-border">
+      <div className="max-w-5xl mx-auto px-6">
         <h2 className="text-2xl font-bold text-foreground mb-12">
-          Writing
+          Essays
         </h2>
         <div className="space-y-12">
           {posts.map((post) => (
