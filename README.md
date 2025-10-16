@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Personal Landing Page
+
+A modern, responsive personal landing page built with Next.js 15, TypeScript, and Tailwind CSS.
+
+## Features
+
+- Minimal, content-focused design
+- Fully responsive (mobile, tablet, desktop)
+- Hero section with bio
+- Blog posts showcase
+- Newsletter subscription with Supabase
+- Contact section with social links
+- Optimized for performance and SEO
+
+## Tech Stack
+
+- **Next.js 15** - React framework
+- **TypeScript** - Type safety
+- **Tailwind CSS v4** - Utility-first styling
+- **Supabase** - Database for newsletter subscribers
+- **Google Fonts** - Inter & Playfair Display
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+1. **Supabase Account**: Sign up at [supabase.com](https://supabase.com)
+2. **Node.js**: Version 18 or higher
+
+### Setup
+
+1. Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Set up Supabase** (required for newsletter):
+   - Follow the detailed guide in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)
+   - Create a Supabase project and subscribers table
+   - Get your API credentials
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Configure environment variables:
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Then add your Supabase credentials to `.env.local`:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+```
 
-## Learn More
+4. Run the development server:
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Building for Production
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build
+npm run start
+```
 
-## Deploy on Vercel
+## Deployment on Railway
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push your code to a Git repository (GitHub, GitLab, etc.)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. Go to [Railway](https://railway.app) and create a new project
+
+3. Connect your repository
+
+4. Add environment variables in Railway:
+   - Go to your service's **Variables** tab
+   - Add `NEXT_PUBLIC_SUPABASE_URL`
+   - Add `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+5. Railway will automatically detect Next.js and deploy it
+
+6. Your site will be live at the Railway-provided URL
+
+## Customization
+
+### Update Personal Information
+
+Edit the following files to customize with your information:
+
+- `app/layout.tsx` - Update metadata (title, description)
+- `components/Hero.tsx` - Your name and bio
+- `components/Writing.tsx` - Your blog posts
+- `components/Contact.tsx` - Your email and social links
+- `components/Navigation.tsx` - Your name in the header
+
+### Styling
+
+The color scheme and fonts can be customized in:
+- `app/globals.css` - CSS variables and theme colors
+
+## Project Structure
+
+```
+personal-landing/
+├── app/
+│   ├── api/
+│   │   └── subscribe/
+│   │       └── route.ts       # Newsletter subscription API
+│   ├── layout.tsx             # Root layout with fonts and metadata
+│   ├── page.tsx               # Main page
+│   └── globals.css            # Global styles
+├── components/
+│   ├── Navigation.tsx         # Navigation bar
+│   ├── Hero.tsx               # Hero section with bio
+│   ├── Writing.tsx            # Blog posts listing
+│   ├── Newsletter.tsx         # Newsletter subscription form
+│   └── Contact.tsx            # Contact section
+├── lib/
+│   └── supabase.ts            # Supabase client configuration
+└── public/                    # Static assets
+```
+
+## License
+
+MIT
