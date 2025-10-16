@@ -6,8 +6,8 @@ export default function Hero() {
           Jacobo De Cal Y Soldra
         </h1>
         <p className="text-xl text-text-secondary leading-relaxed">
-          Venture investor interested in early-stage technology companies.
-          Previously a founder and operator.
+        I'm an investor at Indicator Capital, a deep tech venture capital firm based in Silicon Valley and São Paulo. I write about the topics that excite me most — technology, business, sports, and startups.
+        If you'd like to follow my insights, you can subscribe below.
         </p>
       </div>
     </section>
