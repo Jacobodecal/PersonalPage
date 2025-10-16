@@ -4,9 +4,9 @@ import { getPostBySlug, getAllPostSlugs } from '@/lib/posts';
 import Link from 'next/link';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 // Generate static params for all blog posts
@@ -19,7 +19,8 @@ export async function generateStaticParams() {
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps) {
-  const post = getPostBySlug(params.slug);
+  const { slug } = await params;
+  const post = getPostBySlug(slug);
 
   return {
     title: `${post.title} | Jacobo De Cal`,
@@ -27,11 +28,12 @@ export async function generateMetadata({ params }: PageProps) {
   };
 }
 
-export default function BlogPost({ params }: PageProps) {
+export default async function BlogPost({ params }: PageProps) {
+  const { slug } = await params;
   let post;
 
   try {
-    post = getPostBySlug(params.slug);
+    post = getPostBySlug(slug);
   } catch {
     notFound();
   }
