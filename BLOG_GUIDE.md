@@ -81,7 +81,7 @@ Always include these three fields at the top:
 ### File Naming
 
 The filename becomes the URL:
-- `ai-infrastructure.mdx` → `jacobodecal.com/blog/ai-infrastructure`
+- `theres-no-ai-without-iot.mdx` → `jacobodecal.com/blog/theres-no-ai-without-iot`
 - Use lowercase letters and hyphens (no spaces)
 - Keep it short and descriptive
 
@@ -102,9 +102,9 @@ git push
 ## Examples
 
 Check out the existing posts in `content/posts/`:
-- `ai-infrastructure.mdx`
-- `building-in-public.mdx`
-- `seed-fundraising-guide.mdx`
+- `beyond-the-hype-exploring-blockchains-lesser-known-benefits.mdx`
+- `theres-no-ai-without-iot.mdx`
+- `why-good-technologies-die.mdx`
 
 You can copy any of these as a starting point for your own posts!
 

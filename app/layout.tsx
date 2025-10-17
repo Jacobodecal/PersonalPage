@@ -14,8 +14,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Your Name | Venture Capitalist",
-  description: "Venture Capitalist investing in early-stage technology companies",
+  title: "Jacobo De Cal",
+  description: "VC investor",
 };
 
 export default function RootLayout({

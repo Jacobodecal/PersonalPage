@@ -111,9 +111,8 @@ personal-landing/
 │   └── globals.css            # Global styles
 ├── components/
 │   ├── Navigation.tsx         # Navigation bar
-│   ├── Hero.tsx               # Hero section with bio
+│   ├── Hero.tsx               # Hero section with bio and newsletter
 │   ├── Writing.tsx            # Blog posts listing
-│   ├── Newsletter.tsx         # Newsletter subscription form
 │   └── Contact.tsx            # Contact section
 ├── lib/
 │   └── supabase.ts            # Supabase client configuration
