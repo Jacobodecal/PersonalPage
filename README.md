@@ -9,6 +9,7 @@ A modern, responsive personal landing page built with Next.js 15, TypeScript, an
 - Hero section with bio
 - Blog posts showcase
 - Newsletter subscription with Supabase
+- Email notifications to subscribers (via Resend)
 - Contact section with social links
 - Optimized for performance and SEO
 
@@ -18,6 +19,7 @@ A modern, responsive personal landing page built with Next.js 15, TypeScript, an
 - **TypeScript** - Type safety
 - **Tailwind CSS v4** - Utility-first styling
 - **Supabase** - Database for newsletter subscribers
+- **Resend** - Email notifications for new posts
 - **Google Fonts** - Inter & Playfair Display
 
 ## Getting Started
@@ -25,7 +27,8 @@ A modern, responsive personal landing page built with Next.js 15, TypeScript, an
 ### Prerequisites
 
 1. **Supabase Account**: Sign up at [supabase.com](https://supabase.com)
-2. **Node.js**: Version 18 or higher
+2. **Resend Account** (optional, for email notifications): Sign up at [resend.com](https://resend.com)
+3. **Node.js**: Version 18 or higher
 
 ### Setup
 
@@ -39,23 +42,34 @@ npm install
    - Create a Supabase project and subscribers table
    - Get your API credentials
 
-3. Configure environment variables:
+3. **Set up Resend** (optional, for email notifications):
+   - Follow the detailed guide in [RESEND_SETUP.md](./RESEND_SETUP.md)
+   - Get your API key
+   - Configure your sender email
+
+4. Configure environment variables:
 ```bash
 cp .env.example .env.local
 ```
 
-Then add your Supabase credentials to `.env.local`:
+Then add your credentials to `.env.local`:
 ```env
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+
+# Resend (optional)
+RESEND_API_KEY=your-resend-api-key
+RESEND_FROM_EMAIL=hello@yourdomain.com
+NEXT_PUBLIC_SITE_URL=https://jacobodecal.com
 ```
 
-4. Run the development server:
+5. Run the development server:
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+6. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ### Building for Production
 
@@ -76,6 +90,9 @@ npm run start
    - Go to your service's **Variables** tab
    - Add `NEXT_PUBLIC_SUPABASE_URL`
    - Add `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - Add `RESEND_API_KEY` (if using email notifications)
+   - Add `RESEND_FROM_EMAIL` (if using email notifications)
+   - Add `NEXT_PUBLIC_SITE_URL`
 
 5. Railway will automatically detect Next.js and deploy it
 
@@ -104,19 +121,24 @@ The color scheme and fonts can be customized in:
 personal-landing/
 ├── app/
 │   ├── api/
-│   │   └── subscribe/
-│   │       └── route.ts       # Newsletter subscription API
-│   ├── layout.tsx             # Root layout with fonts and metadata
-│   ├── page.tsx               # Main page
-│   └── globals.css            # Global styles
+│   │   ├── subscribe/
+│   │   │   └── route.ts         # Newsletter subscription API
+│   │   └── notify-subscribers/
+│   │       └── route.ts         # Email notification API
+│   ├── layout.tsx               # Root layout with fonts and metadata
+│   ├── page.tsx                 # Main page
+│   └── globals.css              # Global styles
 ├── components/
-│   ├── Navigation.tsx         # Navigation bar
-│   ├── Hero.tsx               # Hero section with bio and newsletter
-│   ├── Writing.tsx            # Blog posts listing
-│   └── Contact.tsx            # Contact section
+│   ├── Navigation.tsx           # Navigation bar
+│   ├── Hero.tsx                 # Hero section with bio and newsletter
+│   ├── Writing.tsx              # Blog posts listing
+│   ├── Contact.tsx              # Contact section
+│   └── EmailTemplate.tsx        # Email notification template
 ├── lib/
-│   └── supabase.ts            # Supabase client configuration
-└── public/                    # Static assets
+│   └── supabase.ts              # Supabase client configuration
+├── content/
+│   └── posts/                   # Blog posts in MDX format
+└── public/                      # Static assets
 ```
 
 ## License
