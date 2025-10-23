@@ -6,7 +6,12 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [posts, setPosts] = useState<any[]>([]);
+  const [posts, setPosts] = useState<Array<{
+    title: string;
+    excerpt: string;
+    slug: string;
+    date: string;
+  }>>([]);
   const [loading, setLoading] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -28,7 +33,7 @@ export default function AdminPage() {
       } else {
         setError('Failed to load posts');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load posts');
     }
   };
@@ -51,12 +56,17 @@ export default function AdminPage() {
       } else {
         setError('Invalid password');
       }
-    } catch (err) {
+    } catch {
       setError('Authentication failed');
     }
   };
 
-  const handleSendEmail = async (post: any) => {
+  const handleSendEmail = async (post: {
+    title: string;
+    excerpt: string;
+    slug: string;
+    date: string;
+  }) => {
     if (!confirm(`Send email notification for "${post.title}"?`)) {
       return;
     }
@@ -96,7 +106,7 @@ export default function AdminPage() {
       } else {
         setError(data.error || 'Failed to send emails');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to send emails');
     } finally {
       setLoading(null);
@@ -181,7 +191,7 @@ export default function AdminPage() {
             Send Email Notifications
           </h2>
           <p className="text-text-secondary mb-6">
-            Click "Send Email" to notify all subscribers about a post.
+            Click &quot;Send Email&quot; to notify all subscribers about a post.
           </p>
         </div>
 

@@ -68,7 +68,7 @@ export const EmailTemplate: React.FC<Readonly<EmailTemplateProps>> = ({
 
         <Section style={{ fontSize: '14px', color: '#999999' }}>
           <Text style={{ margin: '0 0 10px 0' }}>
-            You're receiving this because you subscribed to updates from Jacobo De Cal.
+            You&apos;re receiving this because you subscribed to updates from Jacobo De Cal.
           </Text>
           <Text style={{ margin: 0 }}>
             <Link
