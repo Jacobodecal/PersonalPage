@@ -27,10 +27,11 @@ export default function VoiceAssistant() {
       setStatus("idle");
     });
 
-    vapi.on("error", (error: any) => {
+    vapi.on("error", (error: unknown) => {
       console.error("Vapi error:", error);
       setStatus("error");
-      setErrorMessage(error.message || "Failed to connect");
+      const message = error instanceof Error ? error.message : "Failed to connect";
+      setErrorMessage(message);
       setTimeout(() => setStatus("idle"), 3000);
     });
 
@@ -52,10 +53,11 @@ export default function VoiceAssistant() {
       setStatus("connecting");
       try {
         await vapiRef.current?.start("d163ffca-b0ae-4f3c-a60d-a6539d93481a");
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Failed to start call:", error);
         setStatus("error");
-        setErrorMessage(error.message || "Failed to start call");
+        const message = error instanceof Error ? error.message : "Failed to start call";
+        setErrorMessage(message);
         setTimeout(() => setStatus("idle"), 3000);
       }
     } else if (status === "connected") {
