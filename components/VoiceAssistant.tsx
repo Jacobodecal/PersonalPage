@@ -1,67 +1,56 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import Vapi from "@vapi-ai/web";
+import { useState } from "react";
+import { useConversation } from "@elevenlabs/react";
 
 type CallStatus = "idle" | "connecting" | "connected" | "error";
 
 export default function VoiceAssistant() {
   const [status, setStatus] = useState<CallStatus>("idle");
-  const vapiRef = useRef<Vapi | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  useEffect(() => {
-    // Initialize Vapi client
-    const vapi = new Vapi("c6a1e7ae-ab54-4e53-b746-3db91b098220");
-    vapiRef.current = vapi;
-
-    // Set up event listeners
-    vapi.on("call-start", () => {
-      console.log("Call started");
+  const conversation = useConversation({
+    onConnect: () => {
+      console.log("Connected to Eleven Labs agent");
       setStatus("connected");
       setErrorMessage("");
-    });
-
-    vapi.on("call-end", () => {
-      console.log("Call ended");
+    },
+    onDisconnect: () => {
+      console.log("Disconnected from agent");
       setStatus("idle");
-    });
-
-    vapi.on("error", (error: unknown) => {
-      console.error("Vapi error:", error);
+    },
+    onError: (error: string) => {
+      console.error("Eleven Labs error:", error);
       setStatus("error");
-      const message = error instanceof Error ? error.message : "Failed to connect";
-      setErrorMessage(message);
+      setErrorMessage(error || "Failed to connect");
       setTimeout(() => setStatus("idle"), 3000);
-    });
-
-    vapi.on("speech-start", () => {
-      console.log("User started speaking");
-    });
-
-    vapi.on("speech-end", () => {
-      console.log("User stopped speaking");
-    });
-
-    return () => {
-      vapi.stop();
-    };
-  }, []);
+    },
+    onMessage: (message: unknown) => {
+      console.log("Message received:", message);
+    },
+  });
 
   const handleClick = async () => {
     if (status === "idle") {
       setStatus("connecting");
       try {
-        await vapiRef.current?.start("d163ffca-b0ae-4f3c-a60d-a6539d93481a");
+        // Request microphone permission
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        // Start conversation with Eleven Labs agent
+        await conversation.startSession({
+          agentId: "agent_4101kfc2vz2ae1cre64r0n0mcjk7",
+          connectionType: "websocket",
+        });
       } catch (error: unknown) {
-        console.error("Failed to start call:", error);
+        console.error("Failed to start conversation:", error);
         setStatus("error");
-        const message = error instanceof Error ? error.message : "Failed to start call";
+        const message = error instanceof Error ? error.message : "Failed to start conversation";
         setErrorMessage(message);
         setTimeout(() => setStatus("idle"), 3000);
       }
     } else if (status === "connected") {
-      vapiRef.current?.stop();
+      await conversation.endSession();
       setStatus("idle");
     }
   };
