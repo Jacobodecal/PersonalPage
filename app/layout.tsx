@@ -16,7 +16,7 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "Jacobo De Cal",
-  description: "VC investor",
+  description: "Former VC Investor and now building global B2B payments powered by stablecoins at @Lumx",
 };
 
 export default function RootLayout({
