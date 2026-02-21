@@ -1,0 +1,216 @@
+---
+date: "2026-02-21"
+excerpt: "A production-grade guide to running your own AI assistant on a $7/month VPS using OpenClaw and Claude."
+title: "How to Set Up Your Own AI Personal Assistant"
+---
+
+### 1. Infrastructure: Running Your Own Always-On AI Layer
+
+We finally have the ingredients to run a real personal AI assistant.
+Frontier models like Claude Opus 4.6 can reason across long context,
+synthesize complex information, and generate structured outputs.
+Orchestration layers like OpenClaw abstract the plumbing. Cheap cloud
+compute makes it practical to keep everything online 24/7.
+
+The result is simple but powerful: an assistant you can message from
+your phone that helps you think faster and execute with less friction.
+Research, analysis, drafting, planning, coding support, decision
+structuring --- all through a single interface that is always available.
+
+The infrastructure to run this is not expensive. In my case, I use a
+Hetzner CAX21 instance, which costs €6.99 per month (roughly \$7--8
+depending on exchange rates). The machine runs on ARM architecture and
+includes 4 vCPU, 8GB RAM, and 80GB of NVMe storage. This is more than
+enough because no heavy AI inference happens locally. The server runs
+coordination logic only. The actual reasoning happens through the Claude
+API.
+
+In practice, the VPS handles session state, Telegram updates, and model
+orchestration. CPU usage remains modest because the workload is mostly
+network-bound rather than compute-bound. You are not running a model
+cluster. You are running coordination infrastructure.
+
+That distinction is what keeps the cost low and the architecture
+elegant.
+
+------------------------------------------------------------------------
+
+### 2. Deploying the VPS and Preparing the Environment
+
+Go to:
+
+https://console.hetzner.cloud/
+
+Create a new server with:
+
+Ubuntu 22.04 LTS\
+Instance type: CAX21\
+Add your SSH key (recommended)
+
+If you add an SSH key during provisioning, you will be able to log in
+without a password. Otherwise, Hetzner will generate a root password.
+
+Connect via SSH:
+
+``` bash
+ssh root@YOUR_SERVER_IP
+```
+
+If using password authentication, you will be prompted to paste the root
+password.
+
+Once inside the machine, update and prepare the environment:
+
+``` bash
+apt update && apt upgrade -y
+apt install -y git curl ca-certificates
+```
+
+At this stage, you have a clean Linux environment running continuously
+in the cloud.
+
+------------------------------------------------------------------------
+
+### 3. Installing Node.js and OpenClaw
+
+OpenClaw runs on Node.js. Install Node 20 LTS:
+
+``` bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+apt install -y nodejs
+node -v
+npm -v
+```
+
+Because the CAX21 runs on ARM64, if you choose Node 22 instead of 20,
+you may need to install build tools to compile native dependencies:
+
+``` bash
+apt install -y build-essential make g++ pkg-config python3 libopus-dev
+```
+
+Now install OpenClaw globally:
+
+``` bash
+npm install -g openclaw
+```
+
+If installation throws errors, copy the full error output and paste it
+into Claude. Frontier models are extremely good at debugging Node
+dependency issues, ARM build failures, missing packages, and PATH
+problems. Most installation issues can be resolved this way quickly.
+
+Verify installation:
+
+``` bash
+openclaw --help
+```
+
+------------------------------------------------------------------------
+
+### 4. Configuring OpenClaw and Connecting Claude Opus
+
+Instead of manually exporting environment variables, use the OpenClaw
+configuration wizard:
+
+``` bash
+openclaw config
+```
+
+Follow the prompts carefully.
+
+When asked for your model provider credentials, enter your Anthropic API
+key.\
+When prompted to select a model, choose Claude Opus 4.6.
+
+The configuration will be stored under:
+
+    ~/.openclaw/openclaw.json
+
+At this point, your assistant has a reasoning layer connected.
+
+------------------------------------------------------------------------
+
+### 5. Creating and Connecting Your Telegram Bot
+
+Open Telegram and search for @BotFather.
+
+Start a conversation and run:
+
+    /newbot
+
+BotFather will ask for a display name and a username (which must end in
+"bot"). Once created, it will generate a token. Copy this token.
+
+Back on your VPS:
+
+``` bash
+openclaw channels login --channel telegram
+```
+
+Paste the token when prompted.
+
+Choose pairing mode for DM policy.
+
+Now send a message to your bot from your Telegram account. You will
+receive a pairing code. Approve it:
+
+``` bash
+openclaw pairing approve telegram YOUR_PAIRING_CODE
+```
+
+If you want to restrict usage strictly to your own Telegram ID:
+
+``` bash
+openclaw config set channels.telegram.dmPolicy allowlist
+openclaw config add channels.telegram.allowFrom "YOUR_TELEGRAM_USER_ID"
+```
+
+------------------------------------------------------------------------
+
+### 6. Starting the Gateway and Keeping It Online
+
+Start the OpenClaw gateway:
+
+``` bash
+openclaw gateway --host 127.0.0.1
+```
+
+To keep it running even after closing SSH, use tmux:
+
+``` bash
+apt install -y tmux
+tmux new -s assistant
+openclaw gateway --host 127.0.0.1
+```
+
+Detach with:
+
+CTRL + B\
+then press D
+
+Reattach later:
+
+``` bash
+tmux attach -t assistant
+```
+
+------------------------------------------------------------------------
+
+### 7. What Happens When You Send a Message
+
+When you message your Telegram bot, the request flows to the OpenClaw
+gateway on your VPS. The gateway attaches session context and forwards
+structured input to Claude Opus. Claude performs inference remotely and
+returns a response. The gateway routes that response back through
+Telegram.
+
+The server remains lightweight because it performs coordination, not
+inference. Claude handles reasoning at scale via API. The VPS simply
+orchestrates the interaction.
+
+For roughly seven dollars per month in infrastructure, you now operate a
+persistent AI layer that is always reachable, isolated from your laptop,
+and fully under your control.
+
+------------------------------------------------------------------------
