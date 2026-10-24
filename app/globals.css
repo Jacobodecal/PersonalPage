@@ -1,31 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0d0d0d;
-  --surface: #161616;
-  --foreground: #e8e6e2;
-  --primary: #61afef;
-  --primary-dark: #3b82c4;
-  --text-secondary: #9a9a95;
-  --text-light: #6e6e68;
-  --border: #2a2a2a;
-  --success: #98c379;
-  --danger: #e06c75;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --primary: #2563eb;
+  --primary-dark: #1e40af;
+  --text-secondary: #475569;
+  --text-light: #64748b;
+  --border: #e2e8f0;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --color-primary-dark: var(--primary-dark);
   --color-text-secondary: var(--text-secondary);
   --color-text-light: var(--text-light);
   --color-border: var(--border);
-  --color-success: var(--success);
-  --color-danger: var(--danger);
-  --font-sans: var(--font-mono);
-  --font-serif: var(--font-mono);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
 }
 
 html {
@@ -35,17 +29,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-
-::selection {
-  background: var(--primary);
-  color: var(--background);
-}
-
-@keyframes blink-cursor {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* Prose styles for blog posts */
