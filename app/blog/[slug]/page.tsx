@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { getPostBySlug, getAllPostSlugs } from '@/lib/posts';
-import Link from 'next/link';
+import { getPostBySlug, getAllPostSlugs, getAllPosts } from '@/lib/posts';
+import BlogTerminal from '@/components/BlogTerminal';
 
 interface PageProps {
   params: Promise<{
@@ -38,7 +38,6 @@ export default async function BlogPost({ params }: PageProps) {
     notFound();
   }
 
-  // Format date
   const date = new Date(post.date);
   const formattedDate = date.toLocaleDateString('en-US', {
     year: 'numeric',
@@ -46,52 +45,11 @@ export default async function BlogPost({ params }: PageProps) {
     day: 'numeric',
   });
 
+  const allPosts = getAllPosts();
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation back home */}
-      <nav className="border-b border-border">
-        <div className="max-w-5xl mx-auto px-6 py-6">
-          <Link
-            href="/"
-            className="text-2xl font-bold text-foreground hover:text-primary transition-colors"
-          >
-            ← Jacobo De Cal
-          </Link>
-        </div>
-      </nav>
-
-      {/* Blog post content */}
-      <article className="pt-16 pb-20">
-        <div className="max-w-5xl mx-auto px-6">
-          {/* Post header */}
-          <header className="mb-12">
-            <time className="text-sm text-text-light mb-4 block">
-              {formattedDate}
-            </time>
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
-              {post.title}
-            </h1>
-            <p className="text-xl text-text-secondary leading-relaxed">
-              {post.excerpt}
-            </p>
-          </header>
-
-          {/* MDX content */}
-          <div className="prose prose-lg max-w-none">
-            <MDXRemote source={post.content} />
-          </div>
-
-          {/* Back to home link */}
-          <div className="mt-16 pt-8 border-t border-border">
-            <Link
-              href="/#writing"
-              className="text-primary hover:text-primary-dark font-medium transition-colors"
-            >
-              ← Back to all posts
-            </Link>
-          </div>
-        </div>
-      </article>
-    </div>
+    <BlogTerminal slug={slug} title={post.title} date={formattedDate} excerpt={post.excerpt} posts={allPosts}>
+      <MDXRemote source={post.content} />
+    </BlogTerminal>
   );
 }

@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import VoiceAssistant from "@/components/VoiceAssistant";
+import KonamiGame from "@/components/KonamiGame";
 
-const inter = Inter({
-  variable: "--font-inter",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  weight: ["600", "700"],
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -25,12 +20,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body
-        className={`${inter.variable} ${playfair.variable} antialiased`}
+        className={`${jetbrainsMono.variable} antialiased`}
       >
         {children}
-        <VoiceAssistant />
+        <KonamiGame />
       </body>
     </html>
   );

@@ -10,10 +10,10 @@ export default function Contact() {
             <p className="text-text-secondary leading-relaxed mb-4">
               You can reach me at{' '}
               <a
-                href="mailto:jacobo@indicator.capital"
+                href="mailto:j@jacobodecal.com"
                 className="text-foreground underline decoration-border hover:decoration-foreground transition-colors"
               >
-                jacobo@indicator.capital
+                j@jacobodecal.com
               </a>
             </p>
             <div className="flex gap-6 text-sm">

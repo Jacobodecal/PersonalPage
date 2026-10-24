@@ -19,8 +19,12 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Optimize cache headers to prevent stale JS bundles
+  // Optimize cache headers to prevent stale JS bundles in production.
+  // Scoped to production only: in dev this same header made browsers hold
+  // onto old chunks across server restarts, causing "Cannot read properties
+  // of undefined (reading 'call')" module-mismatch errors.
   async headers() {
+    if (process.env.NODE_ENV !== 'production') return [];
     return [
       {
         source: '/_next/static/:path*',

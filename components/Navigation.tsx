@@ -11,7 +11,7 @@ export default function Navigation() {
             href="/"
             className="text-2xl font-bold text-foreground hover:text-primary transition-colors"
           >
-            Jacobo De Cal
+            <span className="text-primary">$</span> Jacobo De Cal
           </Link>
           <ul className="flex gap-8 text-lg">
             <li>

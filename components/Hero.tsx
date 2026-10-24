@@ -52,12 +52,12 @@ export default function Hero() {
             placeholder="Type your email..."
             required
             disabled={status === 'loading'}
-            className="flex-1 px-4 py-3 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-foreground focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-base"
+            className="flex-1 px-4 py-3 bg-surface text-foreground border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed text-base"
           />
           <button
             type="submit"
             disabled={status === 'loading'}
-            className="px-6 py-3 bg-foreground text-white rounded-md font-medium hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base"
+            className="px-6 py-3 bg-primary text-background rounded-md font-semibold hover:bg-primary-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed text-base"
           >
             {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
           </button>
@@ -65,7 +65,7 @@ export default function Hero() {
         {message && (
           <p
             className={`mb-8 text-sm ${
-              status === 'success' ? 'text-green-700' : 'text-red-700'
+              status === 'success' ? 'text-primary' : 'text-red-400'
             }`}
           >
             {message}
