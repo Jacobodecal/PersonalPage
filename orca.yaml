@@ -1,0 +1,4 @@
+# Orca workspace config. Setup runs when Orca creates a worktree for a task.
+scripts:
+  setup: |
+    "$HOME/.local/bin/orca-wt-setup"
