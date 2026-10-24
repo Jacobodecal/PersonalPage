@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getDb, type D1Result } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,44 +24,26 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = email.toLowerCase();
 
-    // Check if already subscribed
-    const { data: existing, error: checkError } = await supabase
-      .from('subscribers')
-      .select('email')
-      .eq('email', normalizedEmail)
-      .single();
-
-    if (checkError && checkError.code !== 'PGRST116') {
-      // PGRST116 is "not found" error, which is expected if email doesn't exist
-      console.error('Database check error:', checkError);
-      return NextResponse.json(
-        { error: 'Failed to check subscription status' },
-        { status: 500 }
-      );
-    }
-
-    if (existing) {
-      return NextResponse.json(
-        { error: 'This email is already subscribed' },
-        { status: 400 }
-      );
-    }
-
-    // Add new subscriber
-    const { error: insertError } = await supabase
-      .from('subscribers')
-      .insert([
-        {
-          email: normalizedEmail,
-          subscribed_at: new Date().toISOString(),
-        }
-      ]);
-
-    if (insertError) {
+    // Add new subscriber; the UNIQUE constraint on email makes this a no-op for duplicates
+    const db = await getDb();
+    let result: D1Result;
+    try {
+      result = await db
+        .prepare('INSERT INTO subscribers (email, subscribed_at) VALUES (?, ?) ON CONFLICT(email) DO NOTHING')
+        .bind(normalizedEmail, new Date().toISOString())
+        .run();
+    } catch (insertError) {
       console.error('Insert error:', insertError);
       return NextResponse.json(
         { error: 'Failed to subscribe' },
         { status: 500 }
+      );
+    }
+
+    if (result.meta.changes === 0) {
+      return NextResponse.json(
+        { error: 'This email is already subscribed' },
+        { status: 400 }
       );
     }
 

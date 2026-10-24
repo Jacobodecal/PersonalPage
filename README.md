@@ -8,7 +8,7 @@ A modern, responsive personal landing page built with Next.js 15, TypeScript, an
 - Fully responsive (mobile, tablet, desktop)
 - Hero section with bio
 - Blog posts showcase
-- Newsletter subscription with Supabase
+- Newsletter subscription stored in Cloudflare D1
 - Email notifications to subscribers (via Resend)
 - Contact section with social links
 - Optimized for performance and SEO
@@ -18,7 +18,8 @@ A modern, responsive personal landing page built with Next.js 15, TypeScript, an
 - **Next.js 15** - React framework
 - **TypeScript** - Type safety
 - **Tailwind CSS v4** - Utility-first styling
-- **Supabase** - Database for newsletter subscribers
+- **Cloudflare Workers** (via OpenNext) - Hosting
+- **Cloudflare D1** - Database for newsletter subscribers
 - **Resend** - Email notifications for new posts
 - **Google Fonts** - Inter & Playfair Display
 
@@ -26,77 +27,45 @@ A modern, responsive personal landing page built with Next.js 15, TypeScript, an
 
 ### Prerequisites
 
-1. **Supabase Account**: Sign up at [supabase.com](https://supabase.com)
-2. **Resend Account** (optional, for email notifications): Sign up at [resend.com](https://resend.com)
-3. **Node.js**: Version 18 or higher
+1. **Node.js** 18 or higher
+2. **Cloudflare account** with `jacobodecal.com` (run `npx wrangler login`)
+3. **Resend account** (optional, for email notifications): see [RESEND_SETUP.md](./RESEND_SETUP.md)
 
 ### Setup
 
-1. Install dependencies:
+1. Install dependencies and create the local D1 database:
 ```bash
 npm install
+npm run db:migrate:local
 ```
 
-2. **Set up Supabase** (required for newsletter):
-   - Follow the detailed guide in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)
-   - Create a Supabase project and subscribers table
-   - Get your API credentials
-
-3. **Set up Resend** (optional, for email notifications):
-   - Follow the detailed guide in [RESEND_SETUP.md](./RESEND_SETUP.md)
-   - Get your API key
-   - Configure your sender email
-
-4. Configure environment variables:
-```bash
-cp .env.example .env.local
-```
-
-Then add your credentials to `.env.local`:
+2. Add local secrets to `.env.local`:
 ```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
-
-# Resend (optional)
+ADMIN_PASSWORD=local-password
 RESEND_API_KEY=your-resend-api-key
 RESEND_FROM_EMAIL=hello@yourdomain.com
-NEXT_PUBLIC_SITE_URL=https://jacobodecal.com
 ```
 
-5. Run the development server:
+3. Run the development server and open [http://localhost:3000](http://localhost:3000):
 ```bash
 npm run dev
 ```
 
-6. Open [http://localhost:3000](http://localhost:3000) in your browser
+To run the real Worker runtime locally (closer to production), use `npm run preview` (port 8787).
 
-### Building for Production
+## Deployment (Cloudflare Workers)
 
 ```bash
-npm run build
-npm run start
+npm run deploy
 ```
 
-## Deployment on Railway
+Builds with OpenNext and deploys the `personal-site` Worker. `wrangler.jsonc` routes `jacobodecal.com/*` and `www.jacobodecal.com/*` (www redirects to the apex). Pushing to GitHub does **not** deploy.
 
-1. Push your code to a Git repository (GitHub, GitLab, etc.)
+- **Secrets**: `npx wrangler secret put RESEND_API_KEY` (also `RESEND_FROM_EMAIL`, `ADMIN_PASSWORD`)
+- **Database migrations**: add a file to `migrations/`, then `npm run db:migrate:remote`
+- **Test URL**: https://personal-site.jacobodecal.workers.dev
 
-2. Go to [Railway](https://railway.app) and create a new project
-
-3. Connect your repository
-
-4. Add environment variables in Railway:
-   - Go to your service's **Variables** tab
-   - Add `NEXT_PUBLIC_SUPABASE_URL`
-   - Add `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - Add `RESEND_API_KEY` (if using email notifications)
-   - Add `RESEND_FROM_EMAIL` (if using email notifications)
-   - Add `NEXT_PUBLIC_SITE_URL`
-
-5. Railway will automatically detect Next.js and deploy it
-
-6. Your site will be live at the Railway-provided URL
+Blog posts are bundled into `lib/posts.generated.json` at build time (Workers have no filesystem).
 
 ## Customization
 
@@ -135,7 +104,12 @@ personal-landing/
 │   ├── Contact.tsx              # Contact section
 │   └── EmailTemplate.tsx        # Email notification template
 ├── lib/
-│   └── supabase.ts              # Supabase client configuration
+│   ├── db.ts                    # D1 database access
+│   ├── adminSession.ts          # Signed admin session cookie
+│   └── posts.ts                 # Blog posts (bundled at build time)
+├── migrations/                  # D1 schema migrations
+├── scripts/
+│   └── generate-posts.mjs       # Bundles content/posts at build time
 ├── content/
 │   └── posts/                   # Blog posts in MDX format
 └── public/                      # Static assets

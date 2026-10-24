@@ -1,12 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { supabase } from '@/lib/supabase';
+import { getDb } from '@/lib/db';
+import { isAdminRequest } from '@/lib/adminSession';
 import { EmailTemplate } from '@/components/EmailTemplate';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(request: NextRequest) {
+  // Only a logged-in admin may email every subscriber
+  if (!(await isAdminRequest(request))) {
+    return NextResponse.json(
+      { error: 'Unauthorized: log out and log in again' },
+      { status: 401 }
+    );
+  }
+
   try {
+    // Created per request: Worker secrets are only available at request time
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
     // Get post details from request body
     const { postTitle, postExcerpt, postSlug } = await request.json();
 
@@ -17,24 +27,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Fetch all subscribers from Supabase
-    const { data: subscribers, error: fetchError } = await supabase
-      .from('subscribers')
-      .select('email');
-
-    console.log('Supabase query result:', {
-      subscribers,
-      fetchError,
-      count: subscribers?.length
-    });
-
-    if (fetchError) {
+    // Fetch all subscribers from D1
+    let subscribers: { email: string }[];
+    try {
+      const db = await getDb();
+      const { results } = await db
+        .prepare('SELECT email FROM subscribers')
+        .all<{ email: string }>();
+      subscribers = results;
+    } catch (fetchError) {
       console.error('Error fetching subscribers:', fetchError);
       return NextResponse.json(
-        { error: `Failed to fetch subscribers: ${fetchError.message}` },
+        { error: `Failed to fetch subscribers: ${fetchError instanceof Error ? fetchError.message : 'unknown error'}` },
         { status: 500 }
       );
     }
+
+    console.log('Subscribers query result:', { count: subscribers.length });
 
     if (!subscribers || subscribers.length === 0) {
       console.log('No subscribers found in database');

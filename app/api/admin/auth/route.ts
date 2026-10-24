@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ADMIN_COOKIE, ADMIN_SESSION_MAX_AGE, createAdminSession, safeEqual } from '@/lib/adminSession';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,8 +14,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (password === adminPassword) {
-      return NextResponse.json({ success: true });
+    if (typeof password === 'string' && safeEqual(password, adminPassword)) {
+      const response = NextResponse.json({ success: true });
+      // Server-side proof of login, checked by /api/notify-subscribers
+      response.cookies.set(ADMIN_COOKIE, await createAdminSession(adminPassword), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/api',
+        maxAge: ADMIN_SESSION_MAX_AGE,
+      });
+      return response;
     } else {
       return NextResponse.json(
         { error: 'Invalid password' },

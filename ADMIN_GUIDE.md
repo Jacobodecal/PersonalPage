@@ -95,11 +95,11 @@ Successfully sent to X subscriber(s)!
 
 ### "Failed to send emails"
 - Verify your Resend API key is correct
-- Check that you have subscribers in Supabase
+- Check that you have subscribers in D1 (see README)
 - Review the Resend dashboard for error logs
 
 ### "No subscribers to notify"
-- Add test subscribers to your Supabase database
+- Add test subscribers to your local D1 database (`npm run db:migrate:local` creates the table)
 - Verify the `subscribers` table exists and has email addresses
 
 ### Can't access /admin
@@ -111,11 +111,13 @@ Successfully sent to X subscriber(s)!
 
 ### Environment Variables
 
-When deploying to production (Railway, Vercel, etc.), add:
+Production runs on Cloudflare Workers. Set the password as a Worker secret:
 
+```bash
+npx wrangler secret put ADMIN_PASSWORD
 ```
-ADMIN_PASSWORD=your-production-password
-```
+
+Logging in sets an HttpOnly session cookie (7 days); `/api/notify-subscribers` rejects requests without it. Changing the password invalidates all sessions.
 
 Make sure to use a DIFFERENT password than your development password!
 

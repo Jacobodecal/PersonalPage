@@ -1,0 +1,32 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": ".open-next/worker.js",
+	"name": "personal-site",
+	"compatibility_date": "2026-09-01",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"routes": [
+		{ "pattern": "jacobodecal.com/*", "zone_name": "jacobodecal.com" },
+		{ "pattern": "www.jacobodecal.com/*", "zone_name": "jacobodecal.com" }
+	],
+	// Keep the workers.dev URL for testing deploys before they hit the domain
+	"workers_dev": true,
+	"preview_urls": true,
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "personal-site-db",
+			"database_id": "be5804eb-ef2f-4c52-81c1-e98af924716a",
+			"migrations_dir": "migrations"
+		}
+	],
+	"vars": {
+		"NEXT_PUBLIC_SITE_URL": "https://jacobodecal.com"
+	},
+	"observability": {
+		"enabled": true
+	}
+}

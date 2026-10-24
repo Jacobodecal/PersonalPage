@@ -112,7 +112,7 @@ curl -X POST http://localhost:3000/api/notify-subscribers \
 
 ### Emails not arriving
 - Check spam folder
-- Verify the email address is in your Supabase subscribers table
+- Verify the email address is in the D1 `subscribers` table
 - Check Resend dashboard logs for delivery status
 
 ## Admin Dashboard Features

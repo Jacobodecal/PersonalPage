@@ -96,7 +96,7 @@ git commit -m "Add new blog post: Your Title"
 git push
 ```
 
-2. Railway will automatically rebuild and deploy
+2. Deploy to Cloudflare: `npm run deploy` (pushing to GitHub does not deploy)
 3. Your post will appear on the homepage and be accessible at `/blog/your-slug`
 
 ## Examples
