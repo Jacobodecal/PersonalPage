@@ -43,9 +43,6 @@ next-env.d.ts
 # subscriber data
 /data
 
-# generated at build time
-/lib/posts.generated.json
-
 # cloudflare / opennext
 .open-next
 .wrangler

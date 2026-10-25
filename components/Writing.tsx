@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { getAllPosts } from '@/lib/posts';
 
-export default function Writing() {
-  const posts = getAllPosts();
+export default async function Writing() {
+  const posts = await getAllPosts();
 
   // Format date helper
   const formatDate = (dateString: string) => {

@@ -1,7 +1,11 @@
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
-import { MDXRemote } from 'next-mdx-remote/rsc';
-import { getPostBySlug, getAllPostSlugs } from '@/lib/posts';
+import { getPostBySlug } from '@/lib/posts';
+import { renderMarkdown } from '@/lib/markdown';
 import Link from 'next/link';
+
+// Posts are read from D1 on each request, so publishing in /admin needs no deploy
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{
@@ -9,18 +13,14 @@ interface PageProps {
   }>;
 }
 
-// Generate static params for all blog posts
-export async function generateStaticParams() {
-  const slugs = getAllPostSlugs();
-  return slugs.map((slug) => ({
-    slug,
-  }));
-}
+// Shared by generateMetadata and the page so each request queries D1 once
+const getPost = cache(getPostBySlug);
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const post = getPostBySlug(slug);
+  const post = await getPost(slug);
+  if (!post) return {};
 
   return {
     title: `${post.title} | Jacobo De Cal`,
@@ -30,11 +30,9 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function BlogPost({ params }: PageProps) {
   const { slug } = await params;
-  let post;
+  const post = await getPost(slug);
 
-  try {
-    post = getPostBySlug(slug);
-  } catch {
+  if (!post) {
     notFound();
   }
 
@@ -76,10 +74,11 @@ export default async function BlogPost({ params }: PageProps) {
             </p>
           </header>
 
-          {/* MDX content */}
-          <div className="prose prose-lg max-w-none">
-            <MDXRemote source={post.content} />
-          </div>
+          {/* Post content (markdown) */}
+          <div
+            className="prose prose-lg max-w-none"
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
+          />
 
           {/* Back to home link */}
           <div className="mt-16 pt-8 border-t border-border">

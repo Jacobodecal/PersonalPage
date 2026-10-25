@@ -1,127 +1,40 @@
-# How to Add New Blog Posts
+# Blog Guide
 
-Your blog is now set up with MDX (Markdown + React). Adding new posts is super simple!
+Posts are written in the admin at `/admin` and stored in D1. Publishing goes live immediately, no git or deploy needed.
 
-## Adding a New Post
+## Writing a post
 
-1. **Create a new file** in the `content/posts` directory
-2. **Name it** with a URL-friendly slug (e.g., `my-new-post.mdx`)
-3. **Write your post** using Markdown
+1. Go to `jacobodecal.com/admin` and log in.
+2. **Ideas**: jot anything in the ideas box (⌘↵ saves). When one is ready, click **Turn into draft**: the first line becomes the title, the rest the body.
+3. **New draft** starts an empty post.
+4. In the editor:
+   - **Title**: the slug (`/blog/your-slug`) follows the title until you edit it by hand or publish.
+   - **Excerpt**: one or two sentences; shown in the essays list and link previews.
+   - **Body**: markdown, with a live preview (side by side on desktop, **Write / Preview** tabs on mobile).
+   - Everything autosaves (or ⌘S). The top bar shows *Saved / Saving… / Not saved*.
+5. **Publish** puts it on the homepage and at `/blog/your-slug`. The publish date is set the first time you publish.
+6. **Unpublish** takes it off the site (it goes back to Drafts, keeping its original date).
 
-### Template
+Once a post is published, edits autosave straight to the live page.
 
-Here's a template for a new post:
+## Markdown cheatsheet
 
 ```markdown
----
-title: "Your Post Title"
-date: "2025-01-20"
-excerpt: "A brief summary of what this post is about. This appears on the homepage."
----
+## Section heading
+### Subsection
 
-# Your Post Title
+**bold**, *italic*, `inline code`, [a link](https://example.com)
 
-Your content goes here! You can use all standard Markdown features:
+- bullet
+1. numbered
 
-## Headings
-
-Use ## for main sections and ### for subsections.
-
-## Lists
-
-- Bullet points work
-- Just like this
-- Easy!
-
-Numbered lists too:
-
-1. First item
-2. Second item
-3. Third item
-
-## Emphasis
-
-You can make text **bold** or *italic*.
-
-## Links
-
-[Link text](https://example.com)
-
-## Code
-
-Inline code: `const x = 42`
-
-Code blocks:
-```javascript
-function hello() {
-  console.log("Hello world!");
-}
-```
-
-## Quotes
-
-> This is a quote
-
-That's it!
+> a quote
 
 ---
-
-*Published on January 20, 2025*
 ```
 
-## Important Notes
+Raw HTML is shown as text, not rendered.
 
-### Frontmatter (the part between ---)
+## Sending it to subscribers
 
-Always include these three fields at the top:
-- **title**: The post title (shows up as the page title)
-- **date**: Format as `YYYY-MM-DD` (e.g., "2025-01-20")
-- **excerpt**: A short summary (1-2 sentences)
-
-### File Naming
-
-The filename becomes the URL:
-- `theres-no-ai-without-iot.mdx` → `jacobodecal.com/blog/theres-no-ai-without-iot`
-- Use lowercase letters and hyphens (no spaces)
-- Keep it short and descriptive
-
-### Publishing
-
-Once you've created your `.mdx` file:
-
-1. Commit and push to GitHub:
-```bash
-git add content/posts/your-new-post.mdx
-git commit -m "Add new blog post: Your Title"
-git push
-```
-
-2. Deploy to Cloudflare: `npm run deploy` (pushing to GitHub does not deploy)
-3. Your post will appear on the homepage and be accessible at `/blog/your-slug`
-
-## Examples
-
-Check out the existing posts in `content/posts/`:
-- `beyond-the-hype-exploring-blockchains-lesser-known-benefits.mdx`
-- `theres-no-ai-without-iot.mdx`
-- `why-good-technologies-die.mdx`
-
-You can copy any of these as a starting point for your own posts!
-
-## Tips
-
-1. **Write in any text editor**: VSCode, Notion, or even a simple text editor works
-2. **Preview locally**: Run `npm run dev` to see your post before publishing
-3. **Keep it simple**: Markdown is designed to be easy - don't overthink it
-4. **Use headings**: They help readers scan your content
-5. **Break up text**: Short paragraphs are easier to read
-
-## Need Help?
-
-If something doesn't work, check:
-1. Did you include all three frontmatter fields?
-2. Is the date in the correct format (YYYY-MM-DD)?
-3. Did you close the frontmatter section with `---`?
-4. Is the file extension `.mdx`?
-
-That's it! You're ready to start writing. 🎉
+On a published post, **Email subscribers** sends the title, excerpt and a link to every subscriber. See [ADMIN_GUIDE.md](./ADMIN_GUIDE.md).

@@ -12,5 +12,7 @@ Jacob's personal landing page and blog. Next.js 15 (App Router), TypeScript, Tai
 - Local secrets live in `.env.local`; production secrets are Worker secrets (`wrangler secret`). Never print or commit them.
 - Never trigger a Resend send or write to the production D1 database (`--remote`) without Jacob's yes in the current message.
 - Remote: `Jacobodecal/PersonalPage`. Never push or deploy without explicit confirmation.
-- Blog posts are bundled at build time (`scripts/generate-posts.mjs`); Workers have no filesystem, so don't read `content/` at runtime.
-- Blog pages must stay prerendered: `next-mdx-remote` compiles with `eval`, which Workers block at runtime.
+- Posts live in D1 (`posts` table) and are written in `/admin` (ideas inbox, drafts with autosave, publish). Publishing needs no deploy.
+- Post bodies are markdown rendered with `marked` (`lib/markdown.ts`). Never use MDX/`eval`-based renderers: Workers block `eval` at runtime.
+- `/admin` and `/api/admin/*` are guarded by the signed `admin_session` cookie (`lib/adminSession.ts`).
+- `content/posts/*.mdx` are the legacy source, kept only for `npm run posts:import:local` (and a one-off prod import).

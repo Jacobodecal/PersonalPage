@@ -3,6 +3,9 @@ import Hero from "@/components/Hero";
 import Writing from "@/components/Writing";
 import Contact from "@/components/Contact";
 
+// The essays list is read from D1 on each request
+export const dynamic = "force-dynamic";
+
 export default function Home() {
   return (
     <>

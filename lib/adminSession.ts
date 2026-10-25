@@ -1,6 +1,7 @@
 // Signed admin session cookie: "<expiresAt>.<hmac>", keyed by ADMIN_PASSWORD
 // (rotating the password invalidates every existing session)
-import type { NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
+import { NextResponse, type NextRequest } from 'next/server';
 
 export const ADMIN_COOKIE = 'admin_session';
 export const ADMIN_SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days, in seconds
@@ -34,8 +35,23 @@ export async function createAdminSession(secret: string): Promise<string> {
 }
 
 export async function isAdminRequest(request: NextRequest): Promise<boolean> {
+  return isValidAdminToken(request.cookies.get(ADMIN_COOKIE)?.value);
+}
+
+// Guard for /api/admin/* routes: returns a 401 response, or null when the request is allowed
+export async function requireAdmin(request: NextRequest): Promise<NextResponse | null> {
+  if (await isAdminRequest(request)) return null;
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+}
+
+// For server components (admin pages), which read cookies via next/headers
+export async function hasAdminSession(): Promise<boolean> {
+  const cookieStore = await cookies();
+  return isValidAdminToken(cookieStore.get(ADMIN_COOKIE)?.value);
+}
+
+async function isValidAdminToken(token: string | undefined): Promise<boolean> {
   const secret = process.env.ADMIN_PASSWORD;
-  const token = request.cookies.get(ADMIN_COOKIE)?.value;
   if (!secret || !token) return false;
 
   const [expiresAt, signature] = token.split('.');

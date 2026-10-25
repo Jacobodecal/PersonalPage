@@ -1,6 +1,6 @@
 # Admin Dashboard Guide
 
-A simple, secure admin panel to send email notifications to your subscribers.
+The admin at `/admin` is where you write (ideas, drafts, publishing) and email subscribers. Writing is covered in [BLOG_GUIDE.md](./BLOG_GUIDE.md).
 
 ## Quick Start
 
@@ -14,44 +14,15 @@ ADMIN_PASSWORD=your-secure-password-here
 
 Choose a strong password that you'll remember!
 
-### 2. Access the Dashboard
+### 2. Log in
 
-Go to: `http://localhost:3000/admin` (or `https://yourdomain.com/admin` in production)
+Go to `http://localhost:3000/admin` (or `https://jacobodecal.com/admin`). Without a session you are sent to `/admin/login`.
 
-### 3. Login
+### 3. Send Notifications
 
-Enter your admin password and click "Login"
-
-### 4. Send Notifications
-
-- You'll see a list of all your blog posts
-- Click "Send Email" next to any post
-- Confirm the action
-- All subscribers will receive an email notification!
-
-## Features
-
-### What You Can Do
-
-- **View all posts**: See all your published essays
-- **One-click sending**: Send email notifications with a single click
-- **Real-time feedback**: See success/error messages immediately
-- **Subscriber count**: Know how many people received the email
-
-### What Gets Sent
-
-When you click "Send Email", all subscribers receive:
-- Post title
-- Post excerpt/summary
-- A button to read the full essay
-- Unsubscribe link
-
-### Success Message
-
-After sending, you'll see:
-```
-Successfully sent to X subscriber(s)!
-```
+- Open a published post in the editor
+- Click **Email subscribers** and confirm
+- Every subscriber gets an email with the post title, excerpt and a link
 
 ## Security
 
@@ -63,9 +34,9 @@ Successfully sent to X subscriber(s)!
 
 ### Session Management
 
-- Login state is saved in your browser
-- Click "Logout" to end your session
-- Sessions persist until you logout or clear browser data
+- Logging in sets a signed, HttpOnly `admin_session` cookie (7 days)
+- `/admin` pages and every `/api/admin/*` route check it on the server
+- Click "Logout" to end your session; changing `ADMIN_PASSWORD` ends all sessions
 
 ## Tips
 

@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        path: '/api',
+        path: '/',
         maxAge: ADMIN_SESSION_MAX_AGE,
       });
       return response;

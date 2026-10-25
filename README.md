@@ -37,6 +37,7 @@ A modern, responsive personal landing page built with Next.js 15, TypeScript, an
 ```bash
 npm install
 npm run db:migrate:local
+npm run posts:import:local   # optional: load the legacy posts
 ```
 
 2. Add local secrets to `.env.local`:
@@ -65,7 +66,7 @@ Builds with OpenNext and deploys the `personal-site` Worker. `wrangler.jsonc` ro
 - **Database migrations**: add a file to `migrations/`, then `npm run db:migrate:remote`
 - **Test URL**: https://personal-site.jacobodecal.workers.dev
 
-Blog posts are bundled into `lib/posts.generated.json` at build time (Workers have no filesystem).
+Blog posts live in D1 and are written in `/admin` (see [BLOG_GUIDE.md](./BLOG_GUIDE.md)); publishing needs no deploy.
 
 ## Customization
 
@@ -106,10 +107,11 @@ personal-landing/
 ├── lib/
 │   ├── db.ts                    # D1 database access
 │   ├── adminSession.ts          # Signed admin session cookie
-│   └── posts.ts                 # Blog posts (bundled at build time)
+│   ├── markdown.ts              # Markdown rendering (marked, no eval)
+│   └── posts.ts                 # Posts and ideas (D1)
 ├── migrations/                  # D1 schema migrations
 ├── scripts/
-│   └── generate-posts.mjs       # Bundles content/posts at build time
+│   └── import-mdx-posts.mjs     # One-off import of legacy content/posts into D1
 ├── content/
 │   └── posts/                   # Blog posts in MDX format
 └── public/                      # Static assets
