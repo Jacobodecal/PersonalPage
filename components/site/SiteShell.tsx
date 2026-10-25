@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { SOCIAL_LINKS } from '@/lib/site';
-import SaoPauloClock from './SaoPauloClock';
 
 // Header, centered reading column and footer shared by every public page
 export default function SiteShell({ children }: { children: React.ReactNode }) {
@@ -23,7 +22,6 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       <main>{children}</main>
 
       <footer className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t border-line pt-10 pb-28 text-[13px] text-muted">
-        <SaoPauloClock />
         <div className="flex gap-4">
           {SOCIAL_LINKS.map((link) => (
             <a
