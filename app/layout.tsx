@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import VoiceAssistant from "@/components/VoiceAssistant";
+import { BIO } from "@/lib/site";
 
-const inter = Inter({
-  variable: "--font-inter",
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  weight: ["600", "700"],
 });
 
 export const metadata: Metadata = {
   title: "Jacobo De Cal",
-  description: "Former VC Investor and now building global B2B payments powered by stablecoins at @Lumx",
+  description: BIO,
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${playfair.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
         <VoiceAssistant />

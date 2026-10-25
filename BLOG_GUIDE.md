@@ -14,8 +14,9 @@ Posts are written in the admin at `/admin` and stored in D1. Publishing goes liv
    - Everything autosaves (or ⌘S). The top bar shows *Saved / Saving… / Not saved*.
 5. **Publish** puts it on the homepage and at `/blog/your-slug`. The publish date is set the first time you publish.
 6. **Unpublish** takes it off the site (it goes back to Drafts, keeping its original date).
+7. **Delete** (drafts only) removes a draft for good. Unpublish a post first to delete it.
 
-Once a post is published, edits autosave straight to the live page.
+Editing a published post doesn't touch the live page: your edits autosave as *Unpublished changes*. **Update** makes them live; **Discard changes** throws them away.
 
 ## Markdown cheatsheet
 

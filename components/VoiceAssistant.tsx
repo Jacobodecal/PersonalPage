@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useConversation } from "@elevenlabs/react";
 
 type CallStatus = "idle" | "connecting" | "connected" | "error";
 
 export default function VoiceAssistant() {
+  const pathname = usePathname();
   const [status, setStatus] = useState<CallStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
 
@@ -68,28 +70,29 @@ export default function VoiceAssistant() {
     }
   };
 
+  // Public-site widget only; it would cover the editor in /admin
+  if (pathname.startsWith("/admin")) return null;
+
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-5 right-5 z-50 sm:bottom-6 sm:right-6">
       <button
         onClick={handleClick}
         disabled={status === "connecting"}
-        className={`flex items-center gap-3 px-6 py-3 bg-white border-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 font-medium ${
+        className={`flex items-center gap-2.5 rounded-full border bg-surface/90 py-2 pr-4 pl-2 text-sm font-medium shadow-[0_8px_30px_rgba(0,0,0,0.6)] backdrop-blur transition-colors ${
           status === "error"
-            ? "border-red-300 text-red-600"
+            ? "border-danger/40 text-danger"
             : status === "connected"
-            ? "border-red-300 text-gray-900"
-            : "border-gray-200 text-gray-900"
-        } disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100`}
+            ? "border-danger/40 text-foreground"
+            : "border-line-strong text-foreground hover:border-muted"
+        } disabled:cursor-not-allowed disabled:opacity-70`}
       >
-        <span className={`flex items-center justify-center w-8 h-8 rounded-full ${
-          status === "error"
-            ? "bg-red-500"
-            : status === "connected"
-            ? "bg-red-500"
-            : "bg-green-500"
+        <span className={`flex h-7 w-7 items-center justify-center rounded-full ${
+          status === "error" || status === "connected"
+            ? "bg-danger/90"
+            : "bg-success/90"
         }`}>
           <svg
-            className="w-4 h-4 text-white"
+            className="h-3.5 w-3.5 text-black"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -102,7 +105,7 @@ export default function VoiceAssistant() {
             />
           </svg>
         </span>
-        <span className="text-base">{getButtonText()}</span>
+        <span>{getButtonText()}</span>
       </button>
     </div>
   );

@@ -35,16 +35,16 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-6">
-      <div className="max-w-md w-full">
-        <h1 className="text-3xl font-bold text-foreground mb-8 text-center">
-          Admin Login
+    <div className="min-h-screen flex items-center justify-center px-6">
+      <div className="max-w-sm w-full">
+        <h1 className="text-xl font-semibold text-strong mb-8">
+          Admin
         </h1>
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-foreground mb-2"
+              className="block font-mono text-xs uppercase tracking-[0.08em] text-muted mb-2"
             >
               Password
             </label>
@@ -53,19 +53,19 @@ export default function LoginForm() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full px-3.5 py-2.5 bg-surface border border-line rounded-lg text-foreground focus:outline-none focus:border-accent"
               placeholder="Enter admin password"
               autoFocus
               required
             />
           </div>
           {error && (
-            <p className="text-red-600 text-sm">{error}</p>
+            <p className="text-danger text-sm">{error}</p>
           )}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-foreground text-white py-3 rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-50"
+            className="w-full bg-foreground text-black py-2.5 rounded-lg hover:bg-white transition-colors font-medium disabled:opacity-50"
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>

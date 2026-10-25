@@ -1,27 +1,29 @@
-import Navigation from "@/components/Navigation";
-import Hero from "@/components/Hero";
-import Writing from "@/components/Writing";
-import Contact from "@/components/Contact";
+import SiteShell from "@/components/site/SiteShell";
+import SubscribeForm from "@/components/site/SubscribeForm";
+import PostList from "@/components/site/PostList";
+import SectionLabel from "@/components/site/SectionLabel";
+import { getAllPosts } from "@/lib/posts";
+import { BIO_INTRO, BIO_NOW, NEWSLETTER_TAGLINE } from "@/lib/site";
 
-// The essays list is read from D1 on each request
+// The writing list is read from D1 on each request
 export const dynamic = "force-dynamic";
 
-export default function Home() {
+export default async function Home() {
+  const posts = await getAllPosts();
+
   return (
-    <>
-      <Navigation />
-      <main className="bg-white">
-        <Hero />
-        <Writing />
-        <Contact />
-      </main>
-      <footer className="py-8 text-center border-t border-border bg-white">
-        <div className="max-w-5xl mx-auto px-6">
-          <p className="text-text-light text-sm">
-            &copy; 2025 Jacobo De Cal
-          </p>
-        </div>
-      </footer>
-    </>
+    <SiteShell>
+      <section className="pt-20 pb-14 sm:pt-24">
+        <p className="mb-8 text-xl leading-[1.5] tracking-[-0.01em] text-strong sm:text-[22px]">
+          {BIO_INTRO} <span className="text-muted">{BIO_NOW}</span>
+        </p>
+        <SubscribeForm note={NEWSLETTER_TAGLINE} />
+      </section>
+
+      <section className="border-t border-line py-10">
+        <SectionLabel>Writing</SectionLabel>
+        <PostList posts={posts} />
+      </section>
+    </SiteShell>
   );
 }

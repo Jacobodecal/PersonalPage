@@ -1,8 +1,11 @@
 import { cache } from 'react';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { getPostBySlug } from '@/lib/posts';
 import { renderMarkdown } from '@/lib/markdown';
-import Link from 'next/link';
+import { formatLongDate, NEWSLETTER_TAGLINE } from '@/lib/site';
+import SiteShell from '@/components/site/SiteShell';
+import SubscribeForm from '@/components/site/SubscribeForm';
 
 // Posts are read from D1 on each request, so publishing in /admin needs no deploy
 export const dynamic = 'force-dynamic';
@@ -36,61 +39,28 @@ export default async function BlogPost({ params }: PageProps) {
     notFound();
   }
 
-  // Format date
-  const date = new Date(post.date);
-  const formattedDate = date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation back home */}
-      <nav className="border-b border-border">
-        <div className="max-w-5xl mx-auto px-6 py-6">
-          <Link
-            href="/"
-            className="text-2xl font-bold text-foreground hover:text-primary transition-colors"
-          >
-            ← Jacobo De Cal
-          </Link>
-        </div>
-      </nav>
+    <SiteShell>
+      <article className="pt-16 pb-14 sm:pt-20">
+        <Link href="/writing" className="text-sm text-muted transition-colors hover:text-foreground">
+          ← Writing
+        </Link>
 
-      {/* Blog post content */}
-      <article className="pt-16 pb-20">
-        <div className="max-w-5xl mx-auto px-6">
-          {/* Post header */}
-          <header className="mb-12">
-            <time className="text-sm text-text-light mb-4 block">
-              {formattedDate}
-            </time>
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 leading-tight">
-              {post.title}
-            </h1>
-            <p className="text-xl text-text-secondary leading-relaxed">
-              {post.excerpt}
-            </p>
-          </header>
+        <header className="mt-10 mb-10">
+          <time className="font-mono text-[13px] text-muted">{formatLongDate(post.date)}</time>
+          <h1 className="mt-3 text-[28px] leading-[1.2] font-semibold tracking-[-0.02em] text-strong sm:text-4xl">
+            {post.title}
+          </h1>
+          {post.excerpt && <p className="mt-4 text-lg leading-relaxed text-muted">{post.excerpt}</p>}
+        </header>
 
-          {/* Post content (markdown) */}
-          <div
-            className="prose prose-lg max-w-none"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
-          />
-
-          {/* Back to home link */}
-          <div className="mt-16 pt-8 border-t border-border">
-            <Link
-              href="/#writing"
-              className="text-primary hover:text-primary-dark font-medium transition-colors"
-            >
-              ← Back to all posts
-            </Link>
-          </div>
-        </div>
+        <div className="prose" dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }} />
       </article>
-    </div>
+
+      <section className="border-t border-line py-10">
+        <p className="mb-5 text-strong">Enjoyed this? Get the next one by email.</p>
+        <SubscribeForm note={NEWSLETTER_TAGLINE} />
+      </section>
+    </SiteShell>
   );
 }

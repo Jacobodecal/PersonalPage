@@ -16,6 +16,8 @@ const formatDate = (iso: string | null) =>
     ? new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' })
     : '';
 
+const sectionLabel = 'font-mono text-xs uppercase tracking-[0.08em] text-muted mb-3';
+
 export default function AdminDashboard({ initialPosts, initialIdeas }: Props) {
   const router = useRouter();
   const [ideas, setIdeas] = useState(initialIdeas);
@@ -80,21 +82,21 @@ export default function AdminDashboard({ initialPosts, initialIdeas }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+    <div className="min-h-screen">
+      <div className="max-w-[720px] mx-auto px-5 sm:px-6 py-10 sm:py-16">
         <div className="flex justify-between items-center gap-4 mb-10">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Writing</h1>
+          <h1 className="text-xl font-semibold text-strong">Writing</h1>
           <div className="flex items-center gap-4">
-            <button
-              onClick={logout}
-              className="text-sm text-text-light hover:text-foreground"
-            >
+            <Link href="/" className="text-sm text-muted hover:text-foreground">
+              Site
+            </Link>
+            <button onClick={logout} className="text-sm text-muted hover:text-foreground">
               Logout
             </button>
             <button
               onClick={newDraft}
               disabled={busy}
-              className="px-4 py-2 bg-foreground text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 text-sm font-medium"
+              className="px-3.5 py-2 bg-foreground text-black rounded-lg hover:bg-white transition-colors disabled:opacity-50 text-sm font-medium"
             >
               New draft
             </button>
@@ -102,16 +104,14 @@ export default function AdminDashboard({ initialPosts, initialIdeas }: Props) {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm">
+          <div className="mb-6 p-3.5 border border-danger/40 bg-danger/10 rounded-lg text-danger text-sm">
             {error}
           </div>
         )}
 
         {/* Ideas inbox */}
         <section className="mb-12">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-text-light mb-3">
-            Ideas
-          </h2>
+          <h2 className={sectionLabel}>Ideas</h2>
           <form onSubmit={addIdea} className="mb-4">
             <textarea
               value={ideaText}
@@ -121,22 +121,22 @@ export default function AdminDashboard({ initialPosts, initialIdeas }: Props) {
               }}
               rows={2}
               placeholder="Jot down an idea… (⌘↵ to save)"
-              className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-base resize-y"
+              className="w-full px-3.5 py-3 bg-surface border border-line rounded-lg text-foreground placeholder:text-[#5a5a5a] focus:outline-none focus:border-accent text-base resize-y"
             />
             <div className="flex justify-end mt-2">
               <button
                 type="submit"
                 disabled={busy || !ideaText.trim()}
-                className="px-4 py-2 border border-border rounded-lg text-sm font-medium hover:border-foreground disabled:opacity-40"
+                className="px-3.5 py-2 border border-line-strong rounded-lg text-sm font-medium text-foreground hover:border-muted disabled:opacity-40"
               >
                 Save idea
               </button>
             </div>
           </form>
           {ideas.length === 0 ? (
-            <p className="text-text-light text-sm">No ideas yet.</p>
+            <p className="text-muted text-sm">No ideas yet.</p>
           ) : (
-            <ul className="divide-y divide-border border border-border rounded-lg">
+            <ul className="divide-y divide-line border border-line rounded-lg">
               {ideas.map((idea) => (
                 <li key={idea.id} className="p-4 flex flex-col sm:flex-row sm:items-start gap-3">
                   <p className="flex-1 text-foreground whitespace-pre-wrap">{idea.text}</p>
@@ -144,14 +144,14 @@ export default function AdminDashboard({ initialPosts, initialIdeas }: Props) {
                     <button
                       onClick={() => draftFromIdea(idea.id)}
                       disabled={busy}
-                      className="text-primary hover:text-primary-dark font-medium disabled:opacity-50"
+                      className="text-accent hover:underline font-medium disabled:opacity-50"
                     >
                       Turn into draft
                     </button>
                     <button
                       onClick={() => archive(idea.id)}
                       disabled={busy}
-                      className="text-text-light hover:text-foreground disabled:opacity-50"
+                      className="text-muted hover:text-foreground disabled:opacity-50"
                     >
                       Archive
                     </button>
@@ -182,23 +182,24 @@ function PostList({
 }) {
   return (
     <section className="mb-12">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-text-light mb-3">
-        {title}
-      </h2>
+      <h2 className={sectionLabel}>{title}</h2>
       {posts.length === 0 ? (
-        <p className="text-text-light text-sm">{empty}</p>
+        <p className="text-muted text-sm">{empty}</p>
       ) : (
-        <ul className="divide-y divide-border border border-border rounded-lg">
+        <ul className="divide-y divide-line border border-line rounded-lg">
           {posts.map((post) => (
             <li key={post.id}>
               <Link
                 href={`/admin/posts/${post.id}`}
-                className="block p-4 hover:bg-slate-50 transition-colors"
+                className="block p-4 hover:bg-surface transition-colors"
               >
-                <div className="font-semibold text-foreground">
-                  {post.title || <span className="text-text-light">Untitled</span>}
+                <div className="font-medium text-strong">
+                  {post.title || <span className="text-muted">Untitled</span>}
                 </div>
-                <div className="text-sm text-text-light mt-1">{dateOf(post)}</div>
+                <div className="text-sm text-muted mt-1">
+                  {dateOf(post)}
+                  {post.has_pending_changes ? <span className="text-accent"> · Unpublished changes</span> : null}
+                </div>
               </Link>
             </li>
           ))}

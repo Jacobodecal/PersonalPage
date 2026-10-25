@@ -13,6 +13,8 @@ Jacob's personal landing page and blog. Next.js 15 (App Router), TypeScript, Tai
 - Never trigger a Resend send or write to the production D1 database (`--remote`) without Jacob's yes in the current message.
 - Remote: `Jacobodecal/PersonalPage`. Never push or deploy without explicit confirmation.
 - Posts live in D1 (`posts` table) and are written in `/admin` (ideas inbox, drafts with autosave, publish). Publishing needs no deploy.
+- Edits to a published post are stored in `posts.pending_changes` (JSON) and only go live on "Update"; drafts are edited in place.
+- Site copy and links (bio, newsletter tagline, social links) live in `lib/site.ts`. Design tokens are in `app/globals.css`.
 - Post bodies are markdown rendered with `marked` (`lib/markdown.ts`). Never use MDX/`eval`-based renderers: Workers block `eval` at runtime.
 - `/admin` and `/api/admin/*` are guarded by the signed `admin_session` cookie (`lib/adminSession.ts`).
 - `content/posts/*.mdx` are the legacy source, kept only for `npm run posts:import:local` (and a one-off prod import).

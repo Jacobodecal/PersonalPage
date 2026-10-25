@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { renderMarkdown } from '@/lib/markdown';
 import { slugify } from '@/lib/slug';
+import { editableFields, type EditableFields } from '@/lib/postFields';
 import type { AdminPost } from '@/lib/posts';
 
-type Fields = Pick<AdminPost, 'title' | 'slug' | 'excerpt' | 'body_md'>;
 type SaveState = 'saved' | 'unsaved' | 'saving' | 'error';
 
 const AUTOSAVE_DELAY_MS = 800;
@@ -14,14 +15,15 @@ const AUTOSAVE_DELAY_MS = 800;
 // New drafts get "<slug>-<6 hex>" so they stay unique until a real slug is chosen
 const isPlaceholderSlug = (slug: string) => /-[0-9a-f]{6}$/.test(slug);
 
+const ghostButton =
+  'px-3 py-1.5 rounded-lg border border-line-strong text-foreground hover:border-muted disabled:opacity-50';
+const solidButton = 'px-3 py-1.5 rounded-lg bg-foreground text-black font-medium hover:bg-white disabled:opacity-50';
+
 export default function PostEditor({ initialPost }: { initialPost: AdminPost }) {
+  const router = useRouter();
   const [post, setPost] = useState(initialPost);
-  const [fields, setFields] = useState<Fields>({
-    title: initialPost.title,
-    slug: initialPost.slug,
-    excerpt: initialPost.excerpt,
-    body_md: initialPost.body_md,
-  });
+  // Published posts open with their pending edits, if any
+  const [fields, setFields] = useState<EditableFields>(() => editableFields(initialPost));
   // Slug follows the title until it is edited by hand or the post goes live
   const [slugTouched, setSlugTouched] = useState(
     initialPost.status === 'published' || !isPlaceholderSlug(initialPost.slug)
@@ -74,7 +76,7 @@ export default function PostEditor({ initialPost }: { initialPost: AdminPost }) 
     }
   }, [initialPost.id]);
 
-  const update = (patch: Partial<Fields>) => {
+  const update = (patch: Partial<EditableFields>) => {
     setFields((current) => {
       const next = { ...current, ...patch };
       if (patch.title !== undefined && !slugTouched && slugify(patch.title)) {
@@ -112,26 +114,66 @@ export default function PostEditor({ initialPost }: { initialPost: AdminPost }) 
     };
   }, [save]);
 
+  // Runs an action against this post after flushing any pending autosave
+  const run = async (body: Record<string, unknown>, fallbackError: string) => {
+    setBusy(true);
+    setMessage('');
+    try {
+      if (!(await save())) return null;
+      const response = await fetch(`/api/admin/posts/${initialPost.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || fallbackError);
+      setPost(data);
+      return data as AdminPost;
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : fallbackError);
+      return null;
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const setStatus = async (status: AdminPost['status']) => {
     if (status === 'published' && !confirm(`Publish "${fields.title || 'Untitled'}" at /blog/${fields.slug}?`)) return;
     if (status === 'draft' && !confirm('Unpublish this post? It will disappear from the site.')) return;
+    if (await run({ status }, 'Failed to update status')) setSlugTouched(true);
+  };
+
+  // Makes the pending edits live
+  const applyChanges = async () => {
+    if (await run({ action: 'apply' }, 'Failed to update the post')) setMessage('Live post updated.');
+  };
+
+  // Drops the pending edits and goes back to what is live
+  const discardChanges = async () => {
+    if (!confirm('Discard your changes? The live post stays as it is.')) return;
+    const data = await run({ action: 'discard' }, 'Failed to discard changes');
+    if (data) {
+      savedVersion.current = version.current;
+      setFields(editableFields(data));
+      setSaveState('saved');
+    }
+  };
+
+  const deleteDraft = async () => {
+    if (!confirm(`Delete "${fields.title || 'Untitled'}"? This can't be undone.`)) return;
 
     setBusy(true);
     setMessage('');
     try {
-      if (!(await save())) return;
-      const response = await fetch(`/api/admin/posts/${initialPost.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      });
+      const response = await fetch(`/api/admin/posts/${initialPost.id}`, { method: 'DELETE' });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Failed to update status');
-      setPost(data);
-      setSlugTouched(true);
+      if (!response.ok) throw new Error(data.error || 'Failed to delete');
+      // Nothing left to save: skip the "unsaved changes" warning on the way out
+      savedVersion.current = version.current;
+      router.replace('/admin');
+      router.refresh();
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : 'Failed to update status');
-    } finally {
+      setMessage(e instanceof Error ? e.message : 'Failed to delete');
       setBusy(false);
     }
   };
@@ -164,68 +206,74 @@ export default function PostEditor({ initialPost }: { initialPost: AdminPost }) 
 
   const previewHtml = useMemo(() => renderMarkdown(fields.body_md), [fields.body_md]);
   const isPublished = post.status === 'published';
+  const hasPendingChanges = isPublished && post.pending_changes !== null;
 
   const saveLabel = {
     saved: 'Saved',
-    unsaved: 'Unsaved changes',
+    unsaved: 'Unsaved',
     saving: 'Saving…',
     error: 'Not saved',
   }[saveState];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       {/* Top bar */}
-      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-border">
+      <header className="sticky top-0 z-10 bg-background/90 backdrop-blur border-b border-line">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-          <Link href="/admin" className="text-sm text-text-light hover:text-foreground">
+          <Link href="/admin" className="text-sm text-muted hover:text-foreground">
             ← Writing
           </Link>
           <span
-            className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-              isPublished ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-700'
+            className={`font-mono text-[11px] uppercase tracking-[0.06em] px-2 py-0.5 rounded-full border ${
+              isPublished ? 'border-success/40 text-success' : 'border-line-strong text-muted'
             }`}
           >
             {isPublished ? 'Published' : 'Draft'}
           </span>
-          <span className={`text-xs ${saveState === 'error' ? 'text-red-600' : 'text-text-light'}`}>
-            {saveLabel}
-          </span>
-          <div className="ml-auto flex items-center gap-3 text-sm">
-            {isPublished && (
+          <span className={`text-xs ${saveState === 'error' ? 'text-danger' : 'text-muted'}`}>{saveLabel}</span>
+          {hasPendingChanges && <span className="text-xs text-accent">Unpublished changes</span>}
+
+          <div className="ml-auto flex flex-wrap items-center gap-2 text-sm">
+            {isPublished ? (
               <>
                 <a
                   href={`/blog/${post.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-text-light hover:text-foreground"
+                  className="px-2 text-muted hover:text-foreground"
                 >
                   View
                 </a>
-                <button
-                  onClick={emailSubscribers}
-                  disabled={busy}
-                  className="text-text-light hover:text-foreground disabled:opacity-50"
-                >
+                <button onClick={emailSubscribers} disabled={busy} className="px-2 text-muted hover:text-foreground disabled:opacity-50">
                   Email subscribers
+                </button>
+                {hasPendingChanges && (
+                  <>
+                    <button onClick={discardChanges} disabled={busy} className={ghostButton}>
+                      Discard changes
+                    </button>
+                    <button onClick={applyChanges} disabled={busy} className={solidButton}>
+                      Update
+                    </button>
+                  </>
+                )}
+                <button onClick={() => setStatus('draft')} disabled={busy} className={ghostButton}>
+                  Unpublish
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={deleteDraft} disabled={busy} className="px-2 text-muted hover:text-danger disabled:opacity-50">
+                  Delete
+                </button>
+                <button onClick={() => setStatus('published')} disabled={busy} className={solidButton}>
+                  Publish
                 </button>
               </>
             )}
-            <button
-              onClick={() => setStatus(isPublished ? 'draft' : 'published')}
-              disabled={busy}
-              className={`px-4 py-2 rounded-lg font-medium disabled:opacity-50 ${
-                isPublished
-                  ? 'border border-border hover:border-foreground'
-                  : 'bg-foreground text-white hover:opacity-90'
-              }`}
-            >
-              {isPublished ? 'Unpublish' : 'Publish'}
-            </button>
           </div>
         </div>
-        {message && (
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-3 text-sm text-text-secondary">{message}</div>
-        )}
+        {message && <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-3 text-sm text-muted">{message}</div>}
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
@@ -237,9 +285,9 @@ export default function PostEditor({ initialPost }: { initialPost: AdminPost }) 
           onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
           placeholder="Title"
           rows={1}
-          className="w-full text-3xl sm:text-4xl font-bold text-foreground placeholder:text-slate-300 focus:outline-none resize-none overflow-hidden mb-3"
+          className="w-full bg-transparent text-3xl sm:text-4xl font-semibold tracking-[-0.02em] text-strong placeholder:text-[#3a3a3a] focus:outline-none resize-none overflow-hidden mb-3"
         />
-        <div className="flex items-center gap-1 text-sm text-text-light mb-3">
+        <div className="flex items-center gap-1 font-mono text-[13px] text-muted mb-3">
           <span>/blog/</span>
           <input
             value={fields.slug}
@@ -248,15 +296,15 @@ export default function PostEditor({ initialPost }: { initialPost: AdminPost }) 
               update({ slug: e.target.value });
             }}
             onBlur={() => setFields((f) => ({ ...f, slug: slugify(f.slug) || post.slug }))}
-            className="flex-1 min-w-0 bg-transparent border-b border-transparent hover:border-border focus:border-primary focus:outline-none"
+            className="flex-1 min-w-0 bg-transparent border-b border-transparent hover:border-line-strong focus:border-accent focus:outline-none"
           />
         </div>
         <textarea
           value={fields.excerpt}
           onChange={(e) => update({ excerpt: e.target.value })}
-          placeholder="Excerpt (shown in the essays list and link previews)"
+          placeholder="Excerpt (shown in link previews and under the title)"
           rows={2}
-          className="w-full text-lg text-text-secondary placeholder:text-slate-300 focus:outline-none resize-none mb-6"
+          className="w-full bg-transparent text-lg text-muted placeholder:text-[#3a3a3a] focus:outline-none resize-none mb-6"
         />
 
         {/* Write / preview tabs on small screens; side by side on large */}
@@ -266,7 +314,7 @@ export default function PostEditor({ initialPost }: { initialPost: AdminPost }) 
               key={t}
               onClick={() => setTab(t)}
               className={`px-3 py-1.5 rounded-md text-sm font-medium ${
-                tab === t ? 'bg-foreground text-white' : 'text-text-light'
+                tab === t ? 'bg-foreground text-black' : 'text-muted'
               }`}
             >
               {t === 'write' ? 'Write' : 'Preview'}
@@ -279,15 +327,15 @@ export default function PostEditor({ initialPost }: { initialPost: AdminPost }) 
             value={fields.body_md}
             onChange={(e) => update({ body_md: e.target.value })}
             placeholder="Write in markdown…"
-            className={`${tab === 'write' ? 'block' : 'hidden'} lg:block w-full min-h-[60vh] p-4 border border-border rounded-lg font-mono text-[15px] leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary resize-y`}
+            className={`${tab === 'write' ? 'block' : 'hidden'} lg:block w-full min-h-[60vh] p-4 bg-surface border border-line rounded-lg font-mono text-[14px] leading-relaxed text-foreground placeholder:text-[#4a4a4a] focus:outline-none focus:border-accent resize-y`}
           />
           <div
-            className={`${tab === 'preview' ? 'block' : 'hidden'} lg:block min-h-[60vh] p-4 border border-border rounded-lg overflow-auto`}
+            className={`${tab === 'preview' ? 'block' : 'hidden'} lg:block min-h-[60vh] p-5 border border-line rounded-lg overflow-auto`}
           >
             {fields.body_md.trim() ? (
-              <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+              <div className="prose" dangerouslySetInnerHTML={{ __html: previewHtml }} />
             ) : (
-              <p className="text-text-light">Preview appears here.</p>
+              <p className="text-muted">Preview appears here.</p>
             )}
           </div>
         </div>

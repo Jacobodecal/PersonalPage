@@ -1,6 +1,7 @@
 // Blog posts live in D1 (`posts` table) and are written in /admin.
 import { getDb } from './db';
 import { slugify } from './slug';
+import { editableFields, type EditableFields } from './postFields';
 
 export type PostStatus = 'draft' | 'published';
 
@@ -25,9 +26,13 @@ export interface AdminPost {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  // JSON of EditableFields: edits to a published post not yet applied with "Update"
+  pending_changes: string | null;
 }
 
-export type AdminPostSummary = Omit<AdminPost, 'body_md'>;
+export type AdminPostSummary = Omit<AdminPost, 'body_md' | 'pending_changes'> & { has_pending_changes: number };
+
+export type { EditableFields };
 
 export interface Idea {
   id: number;
@@ -73,7 +78,7 @@ export async function listAdminPosts(): Promise<AdminPostSummary[]> {
   const db = await getDb();
   const { results } = await db
     .prepare(
-      'SELECT id, slug, title, excerpt, status, published_at, created_at, updated_at FROM posts ORDER BY updated_at DESC'
+      'SELECT id, slug, title, excerpt, status, published_at, created_at, updated_at, pending_changes IS NOT NULL AS has_pending_changes FROM posts ORDER BY updated_at DESC'
     )
     .all<AdminPostSummary>();
   return results;
@@ -96,35 +101,79 @@ export async function createDraft(input: { title?: string; body_md?: string } = 
   return post!;
 }
 
-export async function updatePost(
-  id: number,
-  fields: Partial<Pick<AdminPost, 'slug' | 'title' | 'excerpt' | 'body_md'>>
-): Promise<AdminPost | null> {
+// Writes fields straight to the post's live columns
+async function writeLiveFields(id: number, fields: EditableFields): Promise<AdminPost | null> {
   const db = await getDb();
-  const current = await getAdminPost(id);
-  if (!current) return null;
-
-  const next = {
-    slug: fields.slug !== undefined ? slugify(fields.slug) || current.slug : current.slug,
-    title: fields.title ?? current.title,
-    excerpt: fields.excerpt ?? current.excerpt,
-    body_md: fields.body_md ?? current.body_md,
-  };
-
   try {
     return await db
       .prepare(
-        'UPDATE posts SET slug = ?, title = ?, excerpt = ?, body_md = ?, updated_at = ? WHERE id = ? RETURNING *'
+        'UPDATE posts SET slug = ?, title = ?, excerpt = ?, body_md = ?, pending_changes = NULL, updated_at = ? WHERE id = ? RETURNING *'
       )
-      .bind(next.slug, next.title, next.excerpt, next.body_md, now(), id)
+      .bind(fields.slug, fields.title, fields.excerpt, fields.body_md, now(), id)
       .first<AdminPost>();
   } catch (error) {
-    if (isUniqueViolation(error)) throw new SlugTakenError(next.slug);
+    if (isUniqueViolation(error)) throw new SlugTakenError(fields.slug);
     throw error;
   }
 }
 
+async function isSlugTakenByOther(id: number, slug: string): Promise<boolean> {
+  const db = await getDb();
+  return !!(await db.prepare('SELECT 1 FROM posts WHERE slug = ? AND id != ?').bind(slug, id).first());
+}
+
+// Autosave. Drafts are edited in place; a published post keeps serving its live
+// version and the edits wait in pending_changes until applyPendingChanges.
+export async function updatePost(id: number, fields: Partial<EditableFields>): Promise<AdminPost | null> {
+  const current = await getAdminPost(id);
+  if (!current) return null;
+
+  const base = editableFields(current);
+  const next: EditableFields = {
+    slug: fields.slug !== undefined ? slugify(fields.slug) || base.slug : base.slug,
+    title: fields.title ?? base.title,
+    excerpt: fields.excerpt ?? base.excerpt,
+    body_md: fields.body_md ?? base.body_md,
+  };
+
+  if (current.status === 'draft') return writeLiveFields(id, next);
+
+  if (await isSlugTakenByOther(id, next.slug)) throw new SlugTakenError(next.slug);
+  const db = await getDb();
+  return db
+    .prepare('UPDATE posts SET pending_changes = ?, updated_at = ? WHERE id = ? RETURNING *')
+    .bind(JSON.stringify(next), now(), id)
+    .first<AdminPost>();
+}
+
+export class EmptyTitleError extends Error {}
+
+// "Update": makes the pending edits of a published post live
+export async function applyPendingChanges(id: number): Promise<AdminPost | null> {
+  const current = await getAdminPost(id);
+  if (!current?.pending_changes) return current;
+
+  const next = editableFields(current);
+  if (!next.title.trim()) throw new EmptyTitleError();
+  return writeLiveFields(id, next);
+}
+
+// "Discard changes": drops the pending edits, the live post stays as it is
+export async function discardPendingChanges(id: number): Promise<AdminPost | null> {
+  const db = await getDb();
+  return db
+    .prepare('UPDATE posts SET pending_changes = NULL, updated_at = ? WHERE id = ? RETURNING *')
+    .bind(now(), id)
+    .first<AdminPost>();
+}
+
 export async function setPostStatus(id: number, status: PostStatus): Promise<AdminPost | null> {
+  // Unpublishing takes pending edits along: a draft is edited in place
+  if (status === 'draft') {
+    const current = await getAdminPost(id);
+    if (current?.pending_changes) await writeLiveFields(id, editableFields(current));
+  }
+
   const db = await getDb();
   // Keeps the original publish date when a post is unpublished and published again
   return db
@@ -133,6 +182,19 @@ export async function setPostStatus(id: number, status: PostStatus): Promise<Adm
     )
     .bind(status, status, now(), now(), id)
     .first<AdminPost>();
+}
+
+export class PublishedPostDeleteError extends Error {}
+
+// Only drafts can be deleted; a published post has to be unpublished first
+export async function deleteDraft(id: number): Promise<boolean> {
+  const current = await getAdminPost(id);
+  if (!current) return false;
+  if (current.status === 'published') throw new PublishedPostDeleteError();
+
+  const db = await getDb();
+  await db.prepare("DELETE FROM posts WHERE id = ? AND status = 'draft'").bind(id).run();
+  return true;
 }
 
 export async function listIdeas(): Promise<Idea[]> {
